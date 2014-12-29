@@ -61,7 +61,10 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 				}
 			}	
 		}	
-			
+		/*
+		 * @ToDo - replace with dom document
+		 * http://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454
+		 */	
 		public static function strip_styles( $content ) {
 			// strip inline styles
 			$content = preg_replace( '/(<[^>]+) style=".*?"/i', '$1', $content );
