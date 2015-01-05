@@ -3,9 +3,10 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 	class Post_Cleaner extends WP_CLI_Command {
 		public function __construct() {
 			// add the filters
-			add_filter( 'clean_post_content', array( 'Cleaner', 'strip_styles' ), 10, 1 );
-			add_filter( 'clean_post_content', array( 'Cleaner', 'convert_smart_quotes' ), 20, 1 );
-			add_filter( 'clean_post_content', array( 'Cleaner', 'remove_empty_tags' ), 30, 1 );
+			add_filter( 'clean_post_content', array( 'Cleaner', 'strip_inline_styles' ), 10, 1 );
+			add_filter( 'clean_post_content', array( 'Cleaner', 'strip_script_tags' ), 20, 1 );
+			add_filter( 'clean_post_content', array( 'Cleaner', 'convert_smart_quotes' ), 30, 1 );
+			add_filter( 'clean_post_content', array( 'Cleaner', 'remove_empty_tags' ), 40, 1 );
 		}
 			
 		/**
@@ -59,27 +60,40 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 				if( ! empty( $skipped_posts ) ) {
 					WP_CLI::line( "Skipped Posts: " . print_r( $skipped_posts, true ) );
 				}
-			}	
-		}	
-		/*
-		 * @ToDo - replace with dom document
-		 * http://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454
-		 */	
-		public static function strip_styles( $content ) {
-			// strip inline styles
-			$content = preg_replace( '/(<[^>]+) style=".*?"/i', '$1', $content );
-			$content = preg_replace( "/(<[^>]+) style='.*?'/i", '$1', $content );
-				
-			// strip style tags
-			$content = preg_replace( '/<style\\b[^>]*>(.*?)<\\/style>/s', '', $content);
-			
-			return $content;
+			}
 		}
+		
+		/*
+		 * Strip inline styles using dom document
+		 */
+		public static function strip_inline_styles( $content ) {
+			$dom = new DOMDocument;
+			$dom->loadHTML( $content );
 			
+			$xpath = new DOMXPath( $dom );
+			$nodes = $xpath->query( '//*[@style]' );
+			
+			// Iterate over found elements with style tags
+			foreach( $nodes as $node ) {              
+			    $node->removeAttribute( 'style' ); 
+			}
+			
+			return $dom->saveHTML();
+		}
+		
+		public static function strip_script_tags( $content ) {
+			$dom = new DOMDocument;
+			if( $dom->loadHTML( $result ) ) {
+				while( ( $r = $dom->getElementsByTagName( 'script' ) ) && $r->length ) {
+					$r->item( 0 )->parentNode->removeChild( $r->item( 0 ) );
+			}
+			return $dom->saveHTML();			
+		}
+		
 		public static function convert_smart_quotes( $content ) {
 			$string = htmlentities( $content );
 			$string = mb_convert_encoding( $string, 'HTML-ENTITIES', 'utf-8' );
-			$string = htmlspecialchars_decode( utf8_decode ( htmlentities( $string, ENT_COMPAT, 'utf-8', false ) ) );
+			$string = htmlspecialchars_decode( utf8_decode( htmlentities( $string, ENT_COMPAT, 'utf-8', false ) ) );
 				
 			$s = array(
 			    chr(145) => "'",
@@ -104,6 +118,21 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 			
 		public static function remove_empty_tags( $content ) {
 			return preg_replace( '/<(\w+)\b(?:\s+[\w\-.:]+(?:\s*=\s*(?:"[^"]*"|"[^"]*"|[\w\-.:]+))?)*\s*\/?>\s*<\/\1\s*>/', '', $content );
+		}
+		
+		/*
+		 * @ToDo - replace with dom document
+		 * http://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454
+		 */	
+		public static function strip_styles( $content ) {
+			// strip inline styles
+			$content = preg_replace( '/(<[^>]+) style=".*?"/i', '$1', $content );
+			$content = preg_replace( "/(<[^>]+) style='.*?'/i", '$1', $content );
+				
+			// strip style tags
+			$content = preg_replace( '/<style\\b[^>]*>(.*?)<\\/style>/s', '', $content );
+			
+			return $content;
 		}
 	}
 	
