@@ -6,7 +6,8 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 			add_filter( 'clean_post_content', array( 'Cleaner', 'strip_inline_styles' ), 10, 1 );
 			add_filter( 'clean_post_content', array( 'Cleaner', 'strip_script_tags' ), 20, 1 );
 			add_filter( 'clean_post_content', array( 'Cleaner', 'convert_smart_quotes' ), 30, 1 );
-			add_filter( 'clean_post_content', array( 'Cleaner', 'remove_empty_tags' ), 40, 1 );
+			//add_filter( 'clean_post_content', array( 'Cleaner', 'remove_empty_tags' ), 40, 1 );
+			add_filter( 'clean_post_content', array( 'Cleaner', 'close_unclosed_tags' ), 40, 1 );
 		}
 			
 		/**
@@ -68,7 +69,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 		 */
 		public static function strip_inline_styles( $content ) {
 			$dom = new DOMDocument;
-			$dom->loadHTML( $content );
+			$dom->loadHTML( $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 			
 			$xpath = new DOMXPath( $dom );
 			$nodes = $xpath->query( '//*[@style]' );
@@ -83,7 +84,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 		
 		public static function strip_script_tags( $content ) {
 			$dom = new DOMDocument;
-			if( $dom->loadHTML( $result ) ) {
+			if( $dom->loadHTML( $result, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD ) ) {
 				while( ( $r = $dom->getElementsByTagName( 'script' ) ) && $r->length ) {
 					$r->item( 0 )->parentNode->removeChild( $r->item( 0 ) );
 			}
@@ -114,6 +115,13 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 			);
 				
 			return strtr( $string, $s );
+		}
+		
+		public static function close_unclosed_tags( $content ) {
+			$dom = new DOMDocument();
+			$dom->loadHTML( $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+			$content = $dom->saveHTML();
+			return $content;
 		}
 			
 		public static function remove_empty_tags( $content ) {
