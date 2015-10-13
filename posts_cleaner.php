@@ -41,7 +41,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ):
 					$post_args['ID'] = $post->ID;
 						
 					// strip styles
-					$post_args['post_content'] = apply_filters( 'clean_post_content', '', $post->post_content );
+					$post_args['post_content'] = apply_filters( 'clean_post_content', $post->post_content );
 						
 					if ( wp_update_post( $post_args ) ) {
 						$progress_bar->tick();
