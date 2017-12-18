@@ -1,6 +1,6 @@
 <?php
 /**
- * Images migration.
+ * Imports images from post_content into the media library.
  *
  * @package WP CLI Scripts
  */
