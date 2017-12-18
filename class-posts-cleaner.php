@@ -10,6 +10,8 @@ class Post_Cleaner extends WP_CLI_Scripts_Migration_Base {
 	}
 
 	/**
+	 * Cleans post content.
+	 *
 	 * @synopsis [<wp_blog_id>]
 	 */
 	public function clean_posts( $args, $assoc_args ) {
@@ -101,16 +103,16 @@ class Post_Cleaner extends WP_CLI_Scripts_Migration_Base {
 		    chr( 147 ) => '"',
 		    chr( 148 ) => '"',
 		    chr( 151 ) => '-',
-		    's&#169;' => '©',
-			'&#174;' => '¨',
-			'&#153;' => 'ª', // &trade;
-			'‰ÛÏ' => '"', // left side double smart quote
-			'‰Û' => '"', // right side double smart quote
-			'‰Û÷' => "'", // left side single smart quote
-			'‰Ûª' => "'", // right side single smart quote
-			'‰Û?' => '...', // elipsis
-			'‰ÛÓ' => '-', // em dash
-			'‰ÛÒ' => '-', // en dash
+		    's&#169;' => 'Â©',
+			'&#174;' => 'Â¨',
+			'&#153;' => 'Âª', // &trade;
+			'â€°Ã›Ã' => '"', // left side double smart quote
+			'â€°Ã›' => '"', // right side double smart quote
+			'â€°Ã›Ã·' => "'", // left side single smart quote
+			'â€°Ã›Âª' => "'", // right side single smart quote
+			'â€°Ã›?' => '...', // elipsis
+			'â€°Ã›Ã“' => '-', // em dash
+			'â€°Ã›Ã’' => '-', // en dash
 		);
 			
 		return strtr( $string, $s );
