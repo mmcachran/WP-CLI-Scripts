@@ -19,14 +19,18 @@ class Post_Cleaner extends WP_CLI_Scripts_Migration_Base {
 		$total_cleaned_posts = 0;
 		$skipped_posts = array();
 		
+		// Bail early if no site id and multisite.
 		if( is_null( $site_id ) && is_multisite() ) {
 			WP_CLI::error( "You must supply a site id!" );
 			exit;
 		}
-
-		if( is_multisite() )
+		
+		// Switch to the blog if multisite.
+		if( is_multisite() ) {
 			switch_to_blog( $site_id );
-
+		}
+		
+		// Query for posts.
 		$query = new WP_Query( array(
 			'post_type' => array( 'post' ),
 			'posts_per_page' => -1,
